@@ -1,0 +1,14 @@
+.venv
+.htaccess
+.DS_Store
+.vscode
+config.py
+
+*.pyc
+*.log
+
+tmp
+tmp/*
+__pycache__
+openid_store
+openid_store/*
