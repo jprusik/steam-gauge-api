@@ -132,6 +132,10 @@ def get_app_languages(app_id):
     return format_query(languages)
 
 
+# def sanitize_input(input):
+#     return input
+
+
 def format_query(query):
 #     # handle db errors and return helpful response
     return jsonify({'success': True, 'data': query})
@@ -146,8 +150,10 @@ def make_request(request, requires_api_key):
     request_url = '%(protocol)s%(host)s%(path)s' % request
 
     # response is formatted as json by default. vdf and xml is also available via the "format" param
+    # TODO: add timeout to requests- http://docs.python-requests.org/en/master/user/quickstart/#timeouts
     response = requests.get(request_url, params=request['payload'])
 
+    # TODO: Handle request exceptions- http://docs.python-requests.org/en/master/user/quickstart/#errors-and-exceptions
     if response.status_code != 200:
         return jsonify({'success': False, 'data': None})
 

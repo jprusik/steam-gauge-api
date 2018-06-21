@@ -1,4 +1,5 @@
-from flask import Flask, abort, jsonify
+import datetime
+from flask import Flask, abort, jsonify, session, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 
 flaskApp = Flask(__name__)
@@ -8,6 +9,44 @@ db = SQLAlchemy(flaskApp)
 
 # must be imported after creation of db object
 import app.api as api
+
+
+@flaskApp.before_request
+def before_request():
+    if session and session['account_id']:
+        # If more than x minutes have passed since the last time the user did anything, log them out
+        minutes_expire = config.SESSION_EXPIRE_MINUTES
+        if (datetime.datetime.now()-session['last_action']).seconds > (minutes_expire*60):
+            clear_session()
+        else:
+            # check anything that might have changed
+            if session['account_id'] in config.ADMIN_USERS:
+                session['admin']=True
+            else:
+                session['admin']=False
+            session['last_action'] = datetime.datetime.now()
+    else:
+        clear_session()
+
+
+@flaskApp.route('/authorize', methods=['GET'])
+def authorize():
+    response = request.args['openid.identity']
+    session['account_id'] = response.split('/')[-1].strip('"')
+    session['session_start'] = datetime.datetime.now()
+    session['last_action'] = datetime.datetime.now()
+    if session['account_id'] in config.ADMIN_USERS:
+        session['admin'] = True
+    return redirect(config.REACT_JS_DOMAIN+':'+config.REACT_JS_PORT)
+
+
+@flaskApp.route('/logout')
+def logout():
+    clear_session()
+
+    # TODO: pass return_to path?
+    return redirect(config.REACT_JS_DOMAIN+':'+config.REACT_JS_PORT)
+
 
 @flaskApp.route('/api/1.0/apps', methods=['GET'])
 def get_app_list():
@@ -81,6 +120,14 @@ def get_friends(account_id):
 @flaskApp.errorhandler(404)
 def not_found(error):
     return jsonify({'success': False})
+
+
+def clear_session():
+    session['account_id'] = None
+    session['admin'] = False
+    session['last_action'] = None
+    session['session_start'] = None
+    session['full_response'] = None
 
 
 if __name__ == '__main__':
