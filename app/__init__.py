@@ -11,6 +11,10 @@ db = SQLAlchemy(flaskApp)
 import app.api as api
 
 
+react_domain = config.REACT_JS_DOMAIN
+if config.DEBUG_ACTIVE_P:
+    react_domain += ':'+config.REACT_JS_PORT
+
 @flaskApp.before_request
 def before_request():
     if session and session['account_id']:
@@ -37,15 +41,24 @@ def authorize():
     session['last_action'] = datetime.datetime.now()
     if session['account_id'] in config.ADMIN_USERS:
         session['admin'] = True
-    return redirect(config.REACT_JS_DOMAIN+':'+config.REACT_JS_PORT)
+    return redirect(react_domain)
+
+
+@flaskApp.route('/current_user')
+def current_user():
+    response = {
+        'account_id': session['account_id'],
+        'admin': session['admin'],
+        'last_action': session['last_action'],
+        'session_start': session['session_start']
+    }
+    return jsonify(response)
 
 
 @flaskApp.route('/logout')
 def logout():
     clear_session()
-
-    # TODO: pass return_to path?
-    return redirect(config.REACT_JS_DOMAIN+':'+config.REACT_JS_PORT)
+    return redirect(react_domain)
 
 
 @flaskApp.route('/api/1.0/apps', methods=['GET'])
@@ -127,7 +140,6 @@ def clear_session():
     session['admin'] = False
     session['last_action'] = None
     session['session_start'] = None
-    session['full_response'] = None
 
 
 if __name__ == '__main__':
