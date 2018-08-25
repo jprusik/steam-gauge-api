@@ -66,6 +66,13 @@ def get_full_app_list():
     return apps
 
 
+def get_multiplayer_app_list():
+    query = models.App.query.filter(models.App.multiplayer != None).values(models.App.app_id)
+    app_data = [{'appid': int(x._asdict()['app_id'])} for x in query]
+
+    return format_query({'applist': {'apps': app_data}})
+
+
 def get_app_details(app_id):
     query = models.App.query.filter_by(app_id=str(app_id)).first()
 

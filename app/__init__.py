@@ -63,6 +63,12 @@ def logout():
 
 @flaskApp.route('/api/1.0/apps', methods=['GET'])
 def get_app_list():
+    filter_multiplayer = request.args.get('filter_multiplayer', '', type=str) == 'true'
+
+    if filter_multiplayer:
+        response = api.get_multiplayer_app_list()
+        return response
+
     response = api.get_full_app_list()
     return response
 
