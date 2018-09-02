@@ -12,7 +12,7 @@ import app.api as api
 
 
 react_domain = config.REACT_JS_DOMAIN
-if config.DEBUG_ACTIVE_P:
+if config.DEBUG:
     react_domain += ':'+config.REACT_JS_PORT
 
 @flaskApp.before_request
