@@ -1,11 +1,11 @@
-Steam Gauge
-===========
+Steam Gauge API
+===============
 
-**NOTE: THIS REPO IS A WORK-IN-PROGRESS REBUILD OF THE [STEAM GAUGE](https://github.com/jprusik/steam-gauge) BACKEND AND PRESENTLY LACKS FEATURE PARITY AND OPTIMIZATIONS FOR PRODUCTION ENVIRONMENTS.**
+**NOTE: THIS REPO IS A WORK-IN-PROGRESS REBUILD OF THE [STEAM GAUGE](https://github.com/jprusik/steam-gauge) BACK-END AND PRESENTLY LACKS FEATURE PARITY AND OPTIMIZATIONS SUITABLE FOR PRODUCTION ENVIRONMENTS.**
 
 [Steam Gauge](https://www.mysteamgauge.com) is a collection of web apps driven by technologies like [Flask](http://flask.pocoo.org) and [React](https://reactjs.org) in order to produce data-rich Steam account summaries.
 
-This repository represents development of the dedicated Flask backend API app which can not only handle and respond to requests to project's data stores, but also serves as a pass-through to Valve's developer APIs, including the Web and Big Picture APIs. This app has undergone several revisions (including a migration from Python 2 to 3) and is presently being refactored to utilize improved software design patterns.
+This repository represents development of the dedicated Flask back-end API app which can not only handle and respond to requests to project's data stores, but also serves as a pass-through to Valve's developer APIs, including the Web and Big Picture APIs. This app has undergone several revisions (including a migration from Python 2 to 3) and is presently being refactored to utilize improved software design patterns.
 
 Requirements
 ------------
