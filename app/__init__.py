@@ -55,10 +55,16 @@ def current_user():
     return jsonify(response)
 
 
-@flaskApp.route('/logout')
+@flaskApp.route('/logout', methods=['PUT'])
 def logout():
     clear_session()
-    return redirect(react_domain)
+    response = {
+        'account_id': session['account_id'],
+        'admin': session['admin'],
+        'last_action': session['last_action'],
+        'session_start': session['session_start']
+    }
+    return jsonify(response)
 
 
 @flaskApp.route('/api/1.0/apps', methods=['GET'])
