@@ -15,6 +15,7 @@ react_domain = config.REACT_JS_DOMAIN
 if config.DEBUG:
     react_domain += ':'+config.REACT_JS_PORT
 
+
 @flaskApp.before_request
 def before_request():
     if session and session['account_id']:
@@ -75,7 +76,7 @@ def get_app_list():
 
     if filter_multiplayer:
         response = api.get_multiplayer_app_list()
-        return response
+        return api.format_query(response)
 
     response = api.get_full_app_list()
 
@@ -156,25 +157,15 @@ def get_friends(account_id):
     return api.format_query(response)
 
 
-@flaskApp.route('/api/1.0/onkettle', methods=['PUT'])
-def htcpcp():
-    return jsonify({
-            'meta': {
-                'code': 418,
-                'message': 'Short and stout'
-            },
-            'success': True
-        }), 418
-
-
 @flaskApp.errorhandler(404)
 def not_found(error):
     return jsonify({
         'meta': {
+            'code': 404,
+            'error_key': 'not_found',
             'error': str(error),
-            'code': 404
+            'success': False
         },
-        'success': False
     }), 404
 
 
@@ -182,10 +173,35 @@ def not_found(error):
 def internal_server_error(error):
     return jsonify({
         'meta': {
+            'code': 500,
+            'error_key': 'SERVER_ISSUE',
             'error': str(error),
-            'code': 500
+            'success': False
         },
-        'success': False
+    }), 500
+
+
+@flaskApp.errorhandler(api.ResourceError)
+def resource_error(error):
+    return jsonify({
+        'meta': {
+            'code': 500,
+            'error_key': 'COULD_NOT_GET_EXTERNAL_DATA',
+            'error': str(error),
+            'success': False
+        },
+    }), 503
+
+
+@flaskApp.errorhandler(api.ResourceDataError)
+def resource_data_error(error):
+    return jsonify({
+        'meta': {
+            'code': 500,
+            'error_key': 'BAD_DATA_RETURNED',
+            'error': str(error),
+            'success': False
+        },
     }), 500
 
 

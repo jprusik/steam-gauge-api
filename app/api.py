@@ -10,7 +10,7 @@ def get_id_by_username(username):
     request = {
         'protocol': 'https://',
         'host': 'api.steampowered.com',
-        'path': '/ISteamUser/ResolveVanityURL/v0001',
+        'path': '/ISteamUser/ResolveVanityURL/v1',
         'payload': {'vanityurl': username}
     }
     account_id = make_request(request, True)
@@ -22,7 +22,7 @@ def get_account_summary(account_id):
     request = {
         'protocol': 'https://',
         'host': 'api.steampowered.com',
-        'path': '/ISteamUser/GetPlayerSummaries/v0002',
+        'path': '/ISteamUser/GetPlayerSummaries/v2',
         'payload': {'steamids': account_id}
     }
     accounts = make_request(request, True)
@@ -34,7 +34,7 @@ def get_friend_list(account_id):
     request = {
         'protocol': 'https://',
         'host': 'api.steampowered.com',
-        'path': '/ISteamUser/GetFriendList/v0001',
+        'path': '/ISteamUser/GetFriendList/v1',
         'payload': {'relationship': 'friend', 'steamid': account_id}
     }
     user_friends = make_request(request, True)
@@ -46,7 +46,7 @@ def get_owned_games(account_id):
     request = {
         'protocol': 'https://',
         'host': 'api.steampowered.com',
-        'path': '/IPlayerService/GetOwnedGames/v0001',
+        'path': '/IPlayerService/GetOwnedGames/v1',
         'payload': {'include_played_free_games': 1, 'include_appinfo': 1, 'steamid': account_id}
     }
     user_games = make_request(request, True)
@@ -156,9 +156,9 @@ def get_app_languages(app_id):
 
 def format_query(query):
     if not query:
-        return jsonify(success=False, data=None)
+        return jsonify({'meta': {'success': False}, 'data': None})
 
-    return jsonify(success=True, data=query)
+    return jsonify({'meta': {'success': True}, 'data': query})
 
 
 def make_request(request, requires_api_key):
@@ -173,11 +173,25 @@ def make_request(request, requires_api_key):
     # TODO: add timeout to requests- http://docs.python-requests.org/en/master/user/quickstart/#timeouts
     response = requests.get(request_url, params=request['payload'])
 
-    # TODO: Handle request exceptions
     if response.status_code != 200:
-        return jsonify(success=False, data=None)
+        raise ResourceError('The response returned status code of [' + str(response.status_code) + ']')
+
+    response_parsed = response.json()
 
     # collapse top tree level if top key is named "response"
-    response_parsed = response.json().get('response') or response.json()
+    if 'response' in response_parsed.keys():
+        response_parsed = response_parsed.get('response')
+
+    # The request was successful, but the response shape returned indicates
+    # an issue with (maybe?) permissions and/or the API key.
+    # Reminder: empty dict and list are each falsy
+    if type(response_parsed) is dict and not response_parsed:
+        raise ResourceDataError('The response returned an empty object.')
 
     return response_parsed
+
+class ResourceError(LookupError):
+    '''The external resource response status code was not 200'''
+
+class ResourceDataError(ValueError):
+    '''The request was successful, but the response shape returned was malformed or unexpected.'''
