@@ -70,82 +70,95 @@ def get_multiplayer_app_list():
     query = models.App.query.filter(models.App.multiplayer != None).values(models.App.app_id)
     app_data = [{'appid': int(x._asdict()['app_id'])} for x in query]
 
-    return format_query({'applist': {'apps': app_data}})
+    return {'applist': {'apps': app_data}}
 
 
-def get_app_details(app_id):
+def get_app_details(app_id, fields):
+    include_fields = []
+
+    if fields:
+        include_fields = fields.split(',')
+
     query = models.App.query.filter_by(app_id=str(app_id)).first()
 
     if query:
-        app_data = query.__dict__
-        del app_data['_sa_instance_state']
+        app_data = query.serialize()
 
-        return format_query(app_data)
+        if 'developers' in include_fields:
+            developers_data = get_app_developers(app_id)
+            app_data.update({'developers': developers_data})
 
-    return format_query(None)
+        if 'genres' in include_fields:
+            genres_data = get_app_genres(app_id)
+            app_data.update({'genres': genres_data})
+
+        if 'languages' in include_fields:
+            languages_data = get_app_languages(app_id)
+            app_data.update({'languages': languages_data})
+
+        if 'publishers' in include_fields:
+            publishers_data = get_app_publishers(app_id)
+            app_data.update({'publishers': publishers_data})
+
+        if 'time_to_beat' in include_fields:
+            time_to_beat_data = get_time_to_beat(app_id)
+            app_data.update({'time_to_beat': time_to_beat_data})
+
+        return app_data
+
+    return None
 
 
 def get_time_to_beat(app_id):
     query = models.Time_To_Beat.query.filter_by(app_id=str(app_id)).first()
 
-    if query:
-        app_data = query.__dict__
-        del app_data['_sa_instance_state']
-        del app_data['timetobeat_api_raw']
-        del app_data['app_id']
+    if not query:
+        return None
 
-        return format_query(app_data)
-
-    return format_query(None)
+    return query.serialize()
 
 
 def get_app_genres(app_id):
     query = models.Genre_App_Map.query.filter_by(apps=str(app_id)).all()
-    genres = []
 
-    for g in query:
-        genres.append(g.genres)
+    if not query:
+        return []
 
-    return format_query(genres)
+    return [ genre.serialize() for genre in query ]
 
 
 def get_app_developers(app_id):
     query = models.Developer_App_Map.query.filter_by(apps=str(app_id)).all()
-    developers = []
 
-    for d in query:
-        developers.append(d.developers)
+    if not query:
+        return []
 
-    return format_query(developers)
+    return [ developer.serialize() for developer in query ]
 
 
 def get_app_publishers(app_id):
     query = models.Publisher_App_Map.query.filter_by(apps=str(app_id)).all()
-    publishers = []
 
-    for p in query:
-        publishers.append(p.publishers)
+    if not query:
+        return []
 
-    return format_query(publishers)
+    return [ publisher.serialize() for publisher in query ]
 
 
 def get_app_languages(app_id):
     query = models.Language_App_Map.query.filter_by(apps=str(app_id)).all()
-    languages = []
 
-    for l in query:
-        languages.append(l.languages)
+    if not query:
+        return []
 
-    return format_query(languages)
-
-
-# def sanitize_input(input):
-#     return input
+    return [ language.serialize() for language in query ]
 
 
 def format_query(query):
-#     # handle db errors and return helpful response
-    return jsonify({'success': True, 'data': query})
+    if not query:
+        return jsonify(success=False, data=None)
+
+    return jsonify(success=True, data=query)
 
 
 def make_request(request, requires_api_key):
@@ -160,11 +173,11 @@ def make_request(request, requires_api_key):
     # TODO: add timeout to requests- http://docs.python-requests.org/en/master/user/quickstart/#timeouts
     response = requests.get(request_url, params=request['payload'])
 
-    # TODO: Handle request exceptions- http://docs.python-requests.org/en/master/user/quickstart/#errors-and-exceptions
+    # TODO: Handle request exceptions
     if response.status_code != 200:
-        return jsonify({'success': False, 'data': None})
+        return jsonify(success=False, data=None)
 
     # collapse top tree level if top key is named "response"
     response_parsed = response.json().get('response') or response.json()
 
-    return jsonify({'success': True, 'data': response_parsed})
+    return response_parsed

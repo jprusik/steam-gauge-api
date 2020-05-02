@@ -52,6 +52,7 @@ def current_user():
         'last_action': session['last_action'],
         'session_start': session['session_start']
     }
+
     return jsonify(response)
 
 
@@ -64,6 +65,7 @@ def logout():
         'last_action': session['last_action'],
         'session_start': session['session_start']
     }
+
     return jsonify(response)
 
 
@@ -76,50 +78,59 @@ def get_app_list():
         return response
 
     response = api.get_full_app_list()
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/apps/<int:app_id>', methods=['GET'])
 def get_app(app_id):
-    response = api.get_app_details(app_id)
-    return response
+    include_fields = request.args.get('fields')
+    response = api.get_app_details(app_id, include_fields)
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/apps/<int:app_id>/timeToBeat', methods=['GET'])
 def get_time_to_beat(app_id):
     response = api.get_time_to_beat(app_id)
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/apps/<int:app_id>/genres', methods=['GET'])
 def get_genres(app_id):
     response = api.get_app_genres(app_id)
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/apps/<int:app_id>/developers', methods=['GET'])
 def get_developers(app_id):
     response = api.get_app_developers(app_id)
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/apps/<int:app_id>/publishers', methods=['GET'])
 def get_publishers(app_id):
     response = api.get_app_publishers(app_id)
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/apps/<int:app_id>/languages', methods=['GET'])
 def get_languages(app_id):
     response = api.get_app_languages(app_id)
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/username/<string:username>', methods=['GET'])
 def get_account_id(username):
     if len(username) > 0:
         response = api.get_id_by_username(username)
-        return response
+
+        return api.format_query(response)
     abort(404)
 
 
@@ -127,24 +138,55 @@ def get_account_id(username):
 def get_account_summary(account_id):
     # Note: account_id is a string to accommodate comma-delimited ids
     response = api.get_account_summary(account_id)
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/accounts/<int:account_id>/apps', methods=['GET'])
 def get_account_games(account_id):
     response = api.get_owned_games(account_id)
-    return response
+
+    return api.format_query(response)
 
 
 @flaskApp.route('/api/1.0/accounts/<int:account_id>/friends', methods=['GET'])
 def get_friends(account_id):
     response = api.get_friend_list(account_id)
-    return response
+
+    return api.format_query(response)
+
+
+@flaskApp.route('/api/1.0/onkettle', methods=['PUT'])
+def htcpcp():
+    return jsonify({
+            'meta': {
+                'code': 418,
+                'message': 'Short and stout'
+            },
+            'success': True
+        }), 418
 
 
 @flaskApp.errorhandler(404)
 def not_found(error):
-    return jsonify({'success': False})
+    return jsonify({
+        'meta': {
+            'error': str(error),
+            'code': 404
+        },
+        'success': False
+    }), 404
+
+
+@flaskApp.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({
+        'meta': {
+            'error': str(error),
+            'code': 500
+        },
+        'success': False
+    }), 500
 
 
 def clear_session():
