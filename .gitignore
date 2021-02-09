@@ -2,7 +2,7 @@
 .htaccess
 .DS_Store
 .vscode
-config.py
+.env
 
 *.pyc
 *.log

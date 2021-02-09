@@ -1,10 +1,11 @@
-import requests
+import os, requests
 from flask import jsonify
 
 import app.models as models
 import app.mocks as mocks
-import app.config as config
 
+
+API_KEY = os.getenv('API_KEY')
 
 def get_id_by_username(username):
     request = {
@@ -163,8 +164,7 @@ def format_query(query):
 
 def make_request(request, requires_api_key):
     if requires_api_key:
-        # TODO: load this from app.config instead of importing again?
-        request['payload']['key'] = config.API_KEY
+        request['payload']['key'] = API_KEY
 
     # TODO refactor to pattern: {protocol}://{host}/{interface}/{method}/{version}?{parameters}
     request_url = '%(protocol)s%(host)s%(path)s' % request

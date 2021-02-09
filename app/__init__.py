@@ -1,9 +1,18 @@
-import datetime
+import datetime, os
 from flask import Flask, abort, jsonify, session, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 
 flaskApp = Flask(__name__)
-flaskApp.config.from_object('app.config')
+flaskApp.config.update(
+    SQLALCHEMY_DATABASE_URI=os.getenv('SQLALCHEMY_DATABASE_URI'),
+    SQLALCHEMY_TRACK_MODIFICATIONS=os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS'),
+    SECRET_KEY=os.getenv('SECRET_KEY')
+)
+ADMIN_USERS = os.getenv('ADMIN_USERS').split(',')
+DEBUG_MODE = os.getenv('DEBUG')
+REACT_DOMAIN = os.getenv('REACT_JS_DOMAIN')
+MINUTES_EXPIRE = int(os.getenv('SESSION_EXPIRE_MINUTES'))
+REACT_JS_PORT = os.getenv('REACT_JS_PORT')
 
 db = SQLAlchemy(flaskApp)
 
@@ -11,21 +20,19 @@ db = SQLAlchemy(flaskApp)
 import app.api as api
 
 
-react_domain = config.REACT_JS_DOMAIN
-if config.DEBUG:
-    react_domain += ':'+config.REACT_JS_PORT
+if DEBUG_MODE:
+    REACT_DOMAIN += ':'+REACT_JS_PORT
 
 
 @flaskApp.before_request
 def before_request():
     if session and session['account_id']:
         # If more than x minutes have passed since the last time the user did anything, log them out
-        minutes_expire = config.SESSION_EXPIRE_MINUTES
-        if (datetime.datetime.now()-session['last_action']).seconds > (minutes_expire*60):
+        if (datetime.datetime.now()-session['last_action']).seconds > (MINUTES_EXPIRE*60):
             clear_session()
         else:
             # check anything that might have changed
-            if session['account_id'] in config.ADMIN_USERS:
+            if session['account_id'] in ADMIN_USERS:
                 session['admin']=True
             else:
                 session['admin']=False
@@ -40,9 +47,11 @@ def authorize():
     session['account_id'] = response.split('/')[-1].strip('"')
     session['session_start'] = datetime.datetime.now()
     session['last_action'] = datetime.datetime.now()
-    if session['account_id'] in config.ADMIN_USERS:
+
+    if session['account_id'] in ADMIN_USERS:
         session['admin'] = True
-    return redirect(react_domain)
+
+    return redirect(REACT_DOMAIN)
 
 
 @flaskApp.route('/current_user')
@@ -213,4 +222,4 @@ def clear_session():
 
 
 if __name__ == '__main__':
-    flaskApp.run(threaded=True)
+    flaskApp.run(threaded=True, host='0.0.0.0')
