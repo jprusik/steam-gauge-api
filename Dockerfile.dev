@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y netcat
 
 RUN pip install --upgrade pip
 COPY requirements.txt ./requirements.txt
-COPY manage.py ./manage.py
 RUN pip install -r requirements.txt
 RUN pip install gunicorn==20.0
 

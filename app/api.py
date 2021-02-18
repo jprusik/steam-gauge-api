@@ -2,7 +2,6 @@ import os, requests
 from flask import jsonify
 
 import app.models as models
-import app.mocks as mocks
 
 
 API_KEY = os.getenv('API_KEY')

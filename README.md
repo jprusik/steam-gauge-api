@@ -22,7 +22,7 @@ This repository represents development of the dedicated Flask back-end API app w
 If you have Docker installed, you can build and run a container to access the api
 
 ```shell
-docker build -f Dockerfile.dev -t sgapi:dev . && docker run --env-file ./.env.dev -d -p 5000:5000 sgapi:dev
+docker build -f Dockerfile.dev -t sgapi:dev . && docker run --env-file ./.env -d -p 5000:5000 sgapi:dev
 ```
 
 ## Limitations & Known Issues
