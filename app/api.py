@@ -79,32 +79,37 @@ def get_app_details(app_id, fields):
     if fields:
         include_fields = fields.split(',')
 
-    query = models.App.query.filter_by(app_id=str(app_id)).first()
+    query = models.App.query.filter(models.App.app_id.in_(str(app_id).split(',')))
 
     if query:
-        app_data = query.serialize()
+        app_list = []
 
-        if 'developers' in include_fields:
-            developers_data = get_app_developers(app_id)
-            app_data.update({'developers': developers_data})
+        for data in query:
+            app_data = data.serialize()
 
-        if 'genres' in include_fields:
-            genres_data = get_app_genres(app_id)
-            app_data.update({'genres': genres_data})
+            if 'developers' in include_fields:
+                developers_data = get_app_developers(app_id)
+                app_data.update({'developers': developers_data})
 
-        if 'languages' in include_fields:
-            languages_data = get_app_languages(app_id)
-            app_data.update({'languages': languages_data})
+            if 'genres' in include_fields:
+                genres_data = get_app_genres(app_id)
+                app_data.update({'genres': genres_data})
 
-        if 'publishers' in include_fields:
-            publishers_data = get_app_publishers(app_id)
-            app_data.update({'publishers': publishers_data})
+            if 'languages' in include_fields:
+                languages_data = get_app_languages(app_id)
+                app_data.update({'languages': languages_data})
 
-        if 'time_to_beat' in include_fields:
-            time_to_beat_data = get_time_to_beat(app_id)
-            app_data.update({'time_to_beat': time_to_beat_data})
+            if 'publishers' in include_fields:
+                publishers_data = get_app_publishers(app_id)
+                app_data.update({'publishers': publishers_data})
 
-        return app_data
+            if 'time_to_beat' in include_fields:
+                time_to_beat_data = get_time_to_beat(app_id)
+                app_data.update({'time_to_beat': time_to_beat_data})
+
+            app_list.append(app_data)
+
+        return app_list
 
     return None
 

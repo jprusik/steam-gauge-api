@@ -92,49 +92,6 @@ def get_app_list():
     return api.format_query(response)
 
 
-@flaskApp.route('/api/1.0/apps/<int:app_id>', methods=['GET'])
-def get_app(app_id):
-    include_fields = request.args.get('fields')
-    response = api.get_app_details(app_id, include_fields)
-
-    return api.format_query(response)
-
-
-@flaskApp.route('/api/1.0/apps/<int:app_id>/timeToBeat', methods=['GET'])
-def get_time_to_beat(app_id):
-    response = api.get_time_to_beat(app_id)
-
-    return api.format_query(response)
-
-
-@flaskApp.route('/api/1.0/apps/<int:app_id>/genres', methods=['GET'])
-def get_genres(app_id):
-    response = api.get_app_genres(app_id)
-
-    return api.format_query(response)
-
-
-@flaskApp.route('/api/1.0/apps/<int:app_id>/developers', methods=['GET'])
-def get_developers(app_id):
-    response = api.get_app_developers(app_id)
-
-    return api.format_query(response)
-
-
-@flaskApp.route('/api/1.0/apps/<int:app_id>/publishers', methods=['GET'])
-def get_publishers(app_id):
-    response = api.get_app_publishers(app_id)
-
-    return api.format_query(response)
-
-
-@flaskApp.route('/api/1.0/apps/<int:app_id>/languages', methods=['GET'])
-def get_languages(app_id):
-    response = api.get_app_languages(app_id)
-
-    return api.format_query(response)
-
-
 @flaskApp.route('/api/1.0/username/<string:username>', methods=['GET'])
 def get_account_id(username):
     if len(username) > 0:
@@ -155,8 +112,21 @@ def get_account_summary(account_id):
 @flaskApp.route('/api/1.0/accounts/<int:account_id>/apps', methods=['GET'])
 def get_account_games(account_id):
     response = api.get_owned_games(account_id)
+    include_fields = request.args.get('fields')
 
-    return api.format_query(response)
+    if response['game_count'] and include_fields:
+        app_list = response['games']
+        app_ids = ''
+        for index, app in enumerate(app_list):
+            if index != 0:
+                app_ids += ','
+            app_ids += str(app['appid'])
+
+        app_details_list = api.get_app_details(app_ids, include_fields)
+
+        return api.format_query(app_details_list)
+
+    return api.format_query(response['games'])
 
 
 @flaskApp.route('/api/1.0/accounts/<int:account_id>/friends', methods=['GET'])
