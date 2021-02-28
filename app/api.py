@@ -1,10 +1,10 @@
 import os, requests
 from flask import jsonify
-
 import app.models as models
 
 
 API_KEY = os.getenv('API_KEY')
+
 
 def get_id_by_username(username):
     request = {
@@ -16,6 +16,7 @@ def get_id_by_username(username):
     account_id = make_request(request, True)
 
     return account_id
+
 
 def get_account_summary(account_id):
     # TODO: this endpoint can handle up to 100 (comma-delimited) ids (per api documentation). larger lists will need to be broken into separate requests.
@@ -73,90 +74,47 @@ def get_multiplayer_app_list():
     return {'applist': {'apps': app_data}}
 
 
-def get_app_details(app_id, fields):
+def get_app_details(app_ids, fields):
     include_fields = []
 
     if fields:
         include_fields = fields.split(',')
 
-    query = models.App.query.filter(models.App.app_id.in_(str(app_id).split(',')))
+    rows = models.db.session.query(models.App).filter(models.App.app_id.in_(str(app_ids).split(',')))
 
-    if query:
+    if rows:
         app_list = []
 
-        for data in query:
-            app_data = data.serialize()
-
-            if 'developers' in include_fields:
-                developers_data = get_app_developers(app_id)
-                app_data.update({'developers': developers_data})
-
-            if 'genres' in include_fields:
-                genres_data = get_app_genres(app_id)
-                app_data.update({'genres': genres_data})
-
-            if 'languages' in include_fields:
-                languages_data = get_app_languages(app_id)
-                app_data.update({'languages': languages_data})
-
-            if 'publishers' in include_fields:
-                publishers_data = get_app_publishers(app_id)
-                app_data.update({'publishers': publishers_data})
+        for row in rows:
+            app_data = row.serialize()
 
             if 'time_to_beat' in include_fields:
-                time_to_beat_data = get_time_to_beat(app_id)
-                app_data.update({'time_to_beat': time_to_beat_data})
+                if row.time_to_beat:
+                    app_data.update({'time_to_beat': row.time_to_beat.serialize()})
+                else:
+                    app_data.update({'time_to_beat': None})
+
+            if 'developers' in include_fields:
+                developers = [developer.serialize() for developer in row.developers]
+                app_data.update({'developers': developers})
+
+            if 'genres' in include_fields:
+                genres = [genre.serialize() for genre in row.genres]
+                app_data.update({'genres': genres})
+
+            if 'languages' in include_fields:
+                languages = [language.serialize() for language in row.languages]
+                app_data.update({'languages': languages})
+
+            if 'publishers' in include_fields:
+                publishers = [publisher.serialize() for publisher in row.publishers]
+                app_data.update({'publishers': publishers})
 
             app_list.append(app_data)
 
         return app_list
 
     return None
-
-
-def get_time_to_beat(app_id):
-    query = models.Time_To_Beat.query.filter_by(app_id=str(app_id)).first()
-
-    if not query:
-        return None
-
-    return query.serialize()
-
-
-def get_app_genres(app_id):
-    query = models.Genre_App_Map.query.filter_by(apps=str(app_id)).all()
-
-    if not query:
-        return []
-
-    return [ genre.serialize() for genre in query ]
-
-
-def get_app_developers(app_id):
-    query = models.Developer_App_Map.query.filter_by(apps=str(app_id)).all()
-
-    if not query:
-        return []
-
-    return [ developer.serialize() for developer in query ]
-
-
-def get_app_publishers(app_id):
-    query = models.Publisher_App_Map.query.filter_by(apps=str(app_id)).all()
-
-    if not query:
-        return []
-
-    return [ publisher.serialize() for publisher in query ]
-
-
-def get_app_languages(app_id):
-    query = models.Language_App_Map.query.filter_by(apps=str(app_id)).all()
-
-    if not query:
-        return []
-
-    return [ language.serialize() for language in query ]
 
 
 def format_query(query):

@@ -1,4 +1,5 @@
 from app import db
+from sqlalchemy.orm import relationship
 
 # TODO: app_id needs to be explicitly indexed?
 class App(db.Model):
@@ -12,8 +13,12 @@ class App(db.Model):
     captions = db.Column(db.Boolean)
     commentary = db.Column(db.Boolean)
     controller_support = db.Column(db.UnicodeText)
+    developers = relationship("Developer_App_Map", foreign_keys='Developer_App_Map.apps', uselist=True, backref="APPS")
+    genres = relationship("Genre_App_Map", foreign_keys='Genre_App_Map.apps', uselist=True, backref="APPS")
+    genres = relationship("Genre_App_Map", foreign_keys='Genre_App_Map.apps', uselist=True, backref="APPS")
     hdr = db.Column(db.Boolean)
     hours_played = db.Column(db.Float)
+    languages = relationship("Language_App_Map", foreign_keys='Language_App_Map.apps', uselist=True, backref="APPS")
     last_updated = db.Column(db.DateTime)
     leaderboards_enabled = db.Column(db.Boolean)
     metascore = db.Column(db.UnicodeText)
@@ -23,6 +28,7 @@ class App(db.Model):
     os_linux = db.Column(db.Boolean)
     os_mac = db.Column(db.Boolean)
     os_windows = db.Column(db.Boolean)
+    publishers = relationship("Publisher_App_Map", foreign_keys='Publisher_App_Map.apps', uselist=True, backref="APPS")
     release_date = db.Column(db.UnicodeText)
     required_age = db.Column(db.Integer)
     singleplayer = db.Column(db.Boolean)
@@ -31,6 +37,7 @@ class App(db.Model):
     stats_enabled = db.Column(db.Boolean)
     steamcloud_enabled = db.Column(db.Boolean)
     store_price_default_usd = db.Column(db.Float)
+    time_to_beat = relationship("Time_To_Beat", foreign_keys='Time_To_Beat.app_id', uselist=False, backref="APPS")
     tradingcards_enabled = db.Column(db.Boolean)
     VAC_enabled = db.Column(db.Boolean)
     workshop_enabled = db.Column(db.Boolean)
@@ -76,7 +83,7 @@ class App(db.Model):
 class Time_To_Beat(db.Model):
     __tablename__ = 'TIME_TO_BEAT'
 
-    app_id = db.Column(db.Unicode(20), index=True, primary_key=True)
+    app_id = db.Column(db.Unicode(20), db.ForeignKey('APPS.app_id'), index=True, primary_key=True)
     data_imputed_completionist = db.Column(db.Boolean)
     data_imputed_extras = db.Column(db.Boolean)
     data_imputed_main_game = db.Column(db.Boolean)
@@ -101,9 +108,9 @@ class Time_To_Beat(db.Model):
 class Genre_App_Map(db.Model):
     __tablename__ = 'GENRE_APP_MAP'
 
-    id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
+    apps = db.Column(db.Unicode(20), db.ForeignKey('APPS.app_id'), index=True)
     genres = db.Column(db.Unicode(200), index=True)
-    apps = db.Column(db.Unicode(20), index=True)
+    id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
 
     def serialize(self):
         return self.genres
@@ -112,9 +119,9 @@ class Genre_App_Map(db.Model):
 class Developer_App_Map(db.Model):
     __tablename__ = 'DEVELOPER_APP_MAP'
 
-    id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
+    apps = db.Column(db.Unicode(20), db.ForeignKey('APPS.app_id'), index=True)
     developers = db.Column(db.Unicode(200), index=True)
-    apps = db.Column(db.Unicode(20), index=True)
+    id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
 
     def serialize(self):
         return self.developers
@@ -123,9 +130,9 @@ class Developer_App_Map(db.Model):
 class Publisher_App_Map(db.Model):
     __tablename__ = 'PUBLISHER_APP_MAP'
 
+    apps = db.Column(db.Unicode(20), db.ForeignKey('APPS.app_id'), index=True)
     id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
     publishers = db.Column(db.Unicode(200), index=True)
-    apps = db.Column(db.Unicode(20), index=True)
 
     def serialize(self):
         return self.publishers
@@ -134,9 +141,9 @@ class Publisher_App_Map(db.Model):
 class Language_App_Map(db.Model):
     __tablename__ = 'LANGUAGE_APP_MAP'
 
+    apps = db.Column(db.Unicode(20), db.ForeignKey('APPS.app_id'), index=True)
     id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
     languages = db.Column(db.Unicode(200), index=True)
-    apps = db.Column(db.Unicode(20), index=True)
 
     def serialize(self):
         return self.languages
@@ -145,9 +152,9 @@ class Language_App_Map(db.Model):
 class DLC_id_App_Map(db.Model):
     __tablename__ = 'DLC_ID_APP_MAP'
 
-    id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
+    apps = db.Column(db.Unicode(20), db.ForeignKey('APPS.app_id'), index=True)
     dlc_ids = db.Column(db.Unicode(200), index=True)
-    apps = db.Column(db.Unicode(20), index=True)
+    id = db.Column(db.Integer, index=True, primary_key=True, autoincrement=True)
 
 
 def littleBobby():
