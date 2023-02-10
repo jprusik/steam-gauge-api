@@ -1,14 +1,17 @@
-.venv
-.htaccess
+# Files
 .DS_Store
-.vscode
 .env
-
-*.pyc
+.htaccess
+.venv*
+.vscode
 *.log
+*.pyc
 
-tmp
-tmp/*
+# Directories
 __pycache__
 openid_store
 openid_store/*
+tmp
+tmp/*
+
+api-del
