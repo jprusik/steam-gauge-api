@@ -1,4 +1,5 @@
-import datetime, os
+import os
+from datetime import datetime, timezone
 from flask import Flask, abort, jsonify, session, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 
@@ -19,16 +20,15 @@ db = SQLAlchemy(flaskApp)
 # must be imported after creation of db object
 import app.api as api
 
-
 if DEBUG_MODE:
     REACT_DOMAIN += ':'+REACT_JS_PORT
 
 
 @flaskApp.before_request
 def before_request():
-    if session and session['account_id']:
+    if session and session['account_id'] and session['last_action']:
         # If more than x minutes have passed since the last time the user did anything, log them out
-        if (datetime.datetime.now()-session['last_action']).seconds > (MINUTES_EXPIRE*60):
+        if (datetime.now(timezone.utc) - session['last_action']).seconds > (MINUTES_EXPIRE*60):
             clear_session()
         else:
             # check anything that might have changed
@@ -36,7 +36,7 @@ def before_request():
                 session['admin']=True
             else:
                 session['admin']=False
-            session['last_action'] = datetime.datetime.now()
+            session['last_action'] = datetime.now(timezone.utc)
     else:
         clear_session()
 
@@ -45,8 +45,10 @@ def before_request():
 def authorize():
     response = request.args['openid.identity']
     session['account_id'] = response.split('/')[-1].strip('"')
-    session['session_start'] = datetime.datetime.now()
-    session['last_action'] = datetime.datetime.now()
+
+    dateTimeNow = datetime.now(timezone.utc)
+    session['session_start'] = dateTimeNow
+    session['last_action'] = dateTimeNow
 
     if session['account_id'] in ADMIN_USERS:
         session['admin'] = True
