@@ -2,7 +2,14 @@ Flask-SQLAlchemy==2.4.1
 Flask==1.1.1
 gunicorn==20.0
 mysql-connector-python==8.0.19
+psycopg2==2.8
 python-dotenv==0.15.0
 python3-openid==3.1.0
 requests==2.23.0
 SQLAlchemy==1.3.13
+
+# required pinning if not using v2 of Flask
+Jinja2==3.0.3
+itsdangerous==2.0.1
+Flask==1.1.1
+werkzeug==2.0.2

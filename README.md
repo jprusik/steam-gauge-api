@@ -10,11 +10,13 @@ This repository represents development of the dedicated Flask back-end API app w
 
 - Python 3.6.5 or higher (earlier versions of Python 3 have not been tested)
 - Package requirements can be found in [`requirements.txt`](app/requirements.txt) and installed with [pip](https://pip.pypa.io) (Note: if you opt to use MySQL, you may have to download and `make` [mysql-connector-python](https://dev.mysql.com/downloads/connector/python/) manually)
+- (Optional) [Pipenv](https://pipenv.pypa.io)
 
 ## Usage
 
 - Create `.env` in the app directory and give values to your app constants (see [`.env.example`](./.env.example)).
 - To run locally, execute `wsgi.py` with Flask from the app root: `flask run`.
+- Alternatively, the app can be run via [Pipenv](https://pipenv.pypa.io) with the command `pipenv run flask run`.
 - Access with your client (by default) at `http://localhost:5000`.
 
 ### Docker
