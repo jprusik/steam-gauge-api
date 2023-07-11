@@ -2,6 +2,8 @@ import os
 from datetime import datetime, timezone
 from flask import Flask, abort, jsonify, session, redirect, request
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+load_dotenv()
 
 flaskApp = Flask(__name__)
 flaskApp.config.update(
@@ -9,7 +11,12 @@ flaskApp.config.update(
     SQLALCHEMY_TRACK_MODIFICATIONS=os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS'),
     SECRET_KEY=os.getenv('SECRET_KEY')
 )
-ADMIN_USERS = os.getenv('ADMIN_USERS').split(',')
+
+try:
+    ADMIN_USERS = os.getenv('ADMIN_USERS').split(',')
+except:
+    ADMIN_USERS = []
+
 DEBUG_MODE = os.getenv('DEBUG')
 REACT_DOMAIN = os.getenv('REACT_JS_DOMAIN')
 MINUTES_EXPIRE = int(os.getenv('SESSION_EXPIRE_MINUTES'))
